@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const getProfile = (token) => {
+let token = null;
+
+const setToken = newToken => {
+  token = newToken;
+}
+
+const getProfile = () => {
 
   const config = {
     headers: {
@@ -12,4 +18,4 @@ const getProfile = (token) => {
   return request.then(response => response.data);
 }
 
-export default { getProfile }
+export default { getProfile, setToken }

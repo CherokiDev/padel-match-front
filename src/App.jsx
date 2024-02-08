@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import loginService from "./services/login";
 import playerService from "./services/player";
@@ -9,17 +9,26 @@ function App() {
   const [user, setUser] = useState(null);
   const [profileData, setProfileData] = useState(null);
 
-  const accessToProfile = () => {
-    const token = localStorage.getItem("token");
-    playerService.getProfile(token);
-    if (token) {
-      playerService.getProfile(token).then((data) => {
-        console.log(data.dataValues);
-        setProfileData(data.dataValues);
-      });
-    } else {
-      console.log("no token");
+  useEffect(() => {
+    const loggedUser = window.localStorage.getItem("loggedUser");
+    if (loggedUser) {
+      const user = JSON.parse(loggedUser);
+      setUser(user);
+      playerService.setToken(user.jwt);
     }
+  }, []);
+
+  const accessToProfile = () => {
+    playerService.getProfile().then((data) => {
+      setProfileData(data);
+    });
+  };
+
+  const handleLogout = () => {
+    window.localStorage.removeItem("loggedUser");
+    setUser(null);
+    setProfileData(null);
+    window.location.reload();
   };
 
   const handleLogin = async (e) => {
@@ -28,11 +37,13 @@ function App() {
     try {
       const user = await loginService.login({ email, password });
       console.log(user);
+
+      window.localStorage.setItem("loggedUser", JSON.stringify(user));
+
+      playerService.setToken(user.jwt);
       setUser(user);
       setEmail("");
       setPassword("");
-
-      localStorage.setItem("token", user.jwt);
     } catch (e) {
       console.error(e);
     }
@@ -72,6 +83,7 @@ function App() {
           <pre>{JSON.stringify(profileData, null, 2)}</pre>
         </div>
       )}
+      <button onClick={handleLogout}>Logout</button>
     </div>
   );
 
