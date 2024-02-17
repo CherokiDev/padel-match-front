@@ -29,4 +29,15 @@ const createNewSchedule = (userId, scheduleData) => {
   return request.then((response) => response.data);
 };
 
-export default { getProfile, getSchedules, createNewSchedule, setToken };
+const getSchedulesAvailables = () => {
+  const request = axios.get("http://localhost:3000/schedulesAvailables");
+  return request.then((response) => response.data);
+};
+
+export default {
+  getProfile,
+  getSchedules,
+  createNewSchedule,
+  getSchedulesAvailables,
+  setToken,
+};
