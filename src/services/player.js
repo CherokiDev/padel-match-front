@@ -1,21 +1,32 @@
-import axios from 'axios';
+import axios from "axios";
 
 let token = null;
 
-const setToken = newToken => {
+const setToken = (newToken) => {
   token = newToken;
-}
+};
 
 const getProfile = () => {
-
   const config = {
     headers: {
-      Authorization: token
-    }
-  }
+      Authorization: token,
+    },
+  };
+  const request = axios.get("http://localhost:3000/profile", config);
+  return request.then((response) => response.data);
+};
 
-  const request = axios.get('http://82.165.2.37:3000/profile', config);
-  return request.then(response => response.data);
-}
+const getSchedules = () => {
+  const request = axios.get("http://localhost:3000/schedules");
+  return request.then((response) => response.data);
+};
 
-export default { getProfile, setToken }
+const createNewSchedule = (userId, scheduleData) => {
+  const request = axios.post(
+    `http://localhost:3000/player/${userId}/schedules`,
+    scheduleData
+  );
+  return request.then((response) => response.data);
+};
+
+export default { getProfile, getSchedules, createNewSchedule, setToken };

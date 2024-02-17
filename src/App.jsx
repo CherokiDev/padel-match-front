@@ -2,12 +2,17 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import loginService from "./services/login";
 import playerService from "./services/player";
+import LoginForm from "./components/LoginForm";
+import Dashboard from "./components/Dashboard";
 
 function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  const [schedules, setSchedules] = useState([]);
+  const [selectedSchedule, setSelectedSchedule] = useState("");
+  const [isPayer, setIsPayer] = useState(false);
 
   useEffect(() => {
     const loggedUser = window.localStorage.getItem("loggedUser");
@@ -16,6 +21,14 @@ function App() {
       setUser(user);
       playerService.setToken(user.jwt);
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      const data = await playerService.getSchedules();
+      setSchedules(data.data);
+    };
+    fetchSchedules();
   }, []);
 
   const accessToProfile = () => {
@@ -49,49 +62,43 @@ function App() {
     }
   };
 
-  const renderLoginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      <div>
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-      <button type="submit">Submit</button>
-    </form>
-  );
+  const handleNewSchedule = async (e) => {
+    e.preventDefault();
 
-  const renderUser = () => (
-    <div>
-      <p>logged-in</p>
-      <button onClick={accessToProfile}>Profile</button>
-      {profileData && (
-        <div>
-          <h3>Profile Data:</h3>
-          <pre>{JSON.stringify(profileData, null, 2)}</pre>
-        </div>
-      )}
-      <button onClick={handleLogout}>Logout</button>
-    </div>
-  );
+    try {
+      const newSchedule = await playerService.createNewSchedule(user.id, {
+        scheduleId: selectedSchedule,
+        payer: isPayer,
+      });
+      console.log(newSchedule);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <>
       <div>
-        <h2>Login</h2>
-        {user ? renderUser() : renderLoginForm()}
+        {user ? (
+          <Dashboard
+            accessToProfile={accessToProfile}
+            profileData={profileData}
+            schedules={schedules}
+            setSelectedSchedule={setSelectedSchedule}
+            isPayer={isPayer}
+            setIsPayer={setIsPayer}
+            handleNewSchedule={handleNewSchedule}
+            handleLogout={handleLogout}
+          />
+        ) : (
+          <LoginForm
+            email={email}
+            handleEmailChange={(e) => setEmail(e.target.value)}
+            password={password}
+            handlePasswordChange={(e) => setPassword(e.target.value)}
+            handleSubmit={handleLogin}
+          />
+        )}
       </div>
     </>
   );
